@@ -13,6 +13,7 @@ data = {
     "Possession Status": [],
     "Furnishing": [],
     "Bathrooms": [],
+    "Balcony": [],
 }
 
 
@@ -26,6 +27,7 @@ if not os.path.exists(base_dir):
 else:
     missing_society_names = []
     missing_avg_prices = []
+    duplicate_entries_count = 0
 
     for root, dirs, files in os.walk(base_dir):
         for file in files:
@@ -117,6 +119,15 @@ else:
                         else "N/A"
                     )
 
+                    balcony_tag = soup.find("div", {"data-summary": "balcony"})
+                    balcony = (
+                        balcony_tag.find(
+                            "div", class_="mb-srp__card__summary--value"
+                        ).get_text(strip=True)
+                        if balcony_tag
+                        else "N/A"
+                    )
+
                     unique_key = (
                         society_name,
                         locality,
@@ -127,6 +138,7 @@ else:
                         possession_status,
                         furnishing,
                         bathrooms,
+                        balcony,
                     )
 
                     if unique_key not in unique_entries:
@@ -141,6 +153,10 @@ else:
                         data["Possession Status"].append(possession_status)
                         data["Furnishing"].append(furnishing)
                         data["Bathrooms"].append(bathrooms)
+                        data["Balcony"].append(balcony)
+
+                    else:
+                        duplicate_entries_count += 1
 
             except Exception as e:
                 print(f"Error processing file {file_path}: {e}")
@@ -158,5 +174,9 @@ else:
         print(f"Files missing society names: {len(missing_society_names)}")
     if missing_avg_prices:
         print(f"Files missing average prices: {len(missing_avg_prices)}")
+    if duplicate_entries_count:
+        print(f"Duplicate entries while scrapping: {duplicate_entries_count}")
+
+    print(f"Scraped unique entries: {len(unique_entries)}")
 
     print(df)
